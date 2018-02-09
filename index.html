@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>chatting</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            #content-wrap{
+                display: none;
+            }
+            #chat-wrap{
+                float:left;
+            }
+            #chat{
+                overflow: auto;
+                height: 500px;  
+            }
+            #whisper{
+                color: gray;
+                font-style: italic;
+            }
+            #error{
+                color:red;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <div id="user-wrap">
+            <form id="user-form">
+                <p>이름을 입력하세요</p>
+                <input type="text" id="user">
+                <input type="submit">
+            </form>
+        </div>
+        <div id="content-wrap">
+            <div id="chat-wrap">
+                <div id="chat"></div>
+                <form id="send-message">
+                    <input size="35" type="text" id="content"/>
+                    <input type="submit"/>
+                </form> 
+            </div>
+            <div id="user-list"></div>
+        </div>    
+        
+        <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        
+        <script>
+            jQuery(function($) {
+                var socket = io.connect();
+                var $messageForm = $("#send-message");
+                var $message = $("#content");
+                var $chat = $("#chat");
+                var $user = $("#user");
+                var $userForm = $("#user-form");
+                var $userList = $("#user-list");
+                
+                $userForm.submit(function(e){//유저 추가
+                    console.log("data");
+                    e.preventDefault();
+                    if($user.val() <= 0){
+                        alert("이름을 입력해주세요");
+                        return;
+                    }
+                    socket.emit("new user",$user.val(),function(data){
+                        console.log(data);
+                        if(data){       
+                            $("#user-wrap").hide();
+                            $("#content-wrap").show();
+                        }else{
+                            alert("이미 사용중인 이름입니다");
+                        }
+                    })
+                })
+                
+                socket.on("load old msg",function(data){
+                    console.log(data.length);
+                    for(var i=0; i<data.length; i++){
+                        $chat.append("<b>"+data[i].nick+": </b>" +data[i].msg+"<br/>");        
+                    }
+                        $chat.scrollTop($chat.prop("scrollHeight"));
+                })
+                
+                socket.on("users",function(data){//현재 접속자 목록
+                    console.log('추가');
+                    var html='';
+                    var i=0;                    
+                    for(i; i<data.length; i++)
+                    {
+                        html +=data[i]+"<br>";
+                    }
+                    $userList.html(html);
+                })
+                $messageForm.submit(function(e){//메세지 전송
+                    e.preventDefault();
+                    if($message.val()<=0){
+                        return;
+                    }
+                socket.emit('send message', $message.val(),function(data){
+                    $chat.append("<span id='error'><b>"+data+"</b></span><br/>");
+                });
+                $message.val("");
+                });
+                socket.on('new message', function(data){
+                    console.log(data);
+                    $chat.append("<b>"+data.user+": </b>" +data.data+"<br/>");
+                    $chat.scrollTop($chat.prop("scrollHeight"));
+                })
+                socket.on('whisper',function(data){
+                    $chat.append("<span id='whisper'><b>"+data.user+": </b>" +data.data+"</span><br/>");
+                    $chat.scrollTop($chat.prop("scrollHeight"));
+                })
+            
+            
+            });
+            
+        </script>
+    </body>
+</html>
