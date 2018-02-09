@@ -1,7 +1,7 @@
 # socket-chatting
 node.js,mongoDb
 ### ◈개  요 
-node.js와 mongoDb를 이용해 웹 소켓 통신으로 간단한 채팅을 구현해 보았습니다. 
+node.js와 mongoDb를 이용해 웹 소켓 통신으로 간단한 채팅을 구현해 보았습니다.<br> 
 채팅 내용이 자동으로 저장되고 이전 채팅 내용을 불러올수 있음.
 귓속말( /w 유저이름 메세지 ) 가능.
  
